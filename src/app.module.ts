@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import * as Joi from 'joi';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import * as Joi from 'joi';
 import { AuthModule } from './auth/auth.module';
 
 @Module({
@@ -16,6 +16,9 @@ import { AuthModule } from './auth/auth.module';
         DB_ACCOUNT_PASSWORD: Joi.string().required(),
         DB_NAME: Joi.string().required(),
         DB_SYNCHRONIZE: Joi.boolean().required(),
+        GRPC_HOST: Joi.string().required(),
+        GRPC_PORT: Joi.number().required(),
+        GRPC_PROTO_PATH: Joi.string().required(),
       }),
     }),
     AuthModule,
