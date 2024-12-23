@@ -19,6 +19,8 @@ import { AuthModule } from './auth/auth.module';
         GRPC_HOST: Joi.string().required(),
         GRPC_PORT: Joi.number().required(),
         GRPC_PROTO_PATH: Joi.string().required(),
+        JWT_SECRET_KEY: Joi.string().required(),
+        JWT_EXPIRE: Joi.string().required(),
       }),
     }),
     AuthModule,
