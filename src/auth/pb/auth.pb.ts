@@ -8,7 +8,7 @@
 import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
 import { Observable } from "rxjs";
 
-export const protobufPackage = "auth";
+export const protobufPackage = "btodo.auth";
 
 export interface SignInRequest {
   email: string;
@@ -64,7 +64,7 @@ export interface ChangePasswordRequest {
 export interface ChangePasswordResponse {
 }
 
-export const AUTH_PACKAGE_NAME = "auth";
+export const BTODO_AUTH_PACKAGE_NAME = "btodo.auth";
 
 export interface AuthServiceClient {
   signIn(request: SignInRequest): Observable<SignInResponse>;
