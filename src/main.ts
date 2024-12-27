@@ -1,9 +1,9 @@
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { join } from 'path';
 import { AppModule } from './app.module';
 import { protobufPackage } from './auth/pb/auth.pb';
+import { Logger } from 'nestjs-pino';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,11 +13,12 @@ async function bootstrap() {
     transport: Transport.GRPC,
     options: {
       package: protobufPackage,
-      protoPath: join(__dirname, '..', config.get('GRPC_PROTO_PATH')),
+      protoPath: config.get('GRPC_PROTO_PATH'),
       url: `${config.get('GRPC_HOST')}:${config.get('GRPC_PORT')}`,
     },
   });
 
+  app.useLogger(app.get(Logger));
   await app.startAllMicroservices();
 }
 bootstrap();
