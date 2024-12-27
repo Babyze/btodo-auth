@@ -4,9 +4,9 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { map, Observable } from 'rxjs';
+import { transformDataTogRPCData } from 'btodo-utils';
 import { Logger } from 'nestjs-pino';
-import { Timestamp } from 'btodo-utils';
+import { map, Observable } from 'rxjs';
 
 @Injectable()
 export class GrpcDataTransformInterceptor implements NestInterceptor {
@@ -22,33 +22,8 @@ export class GrpcDataTransformInterceptor implements NestInterceptor {
       )} - Context: ${JSON.stringify(context.switchToRpc().getContext())}`,
     );
 
-    return next.handle().pipe(map((data: any) => this.transformData(data)));
-  }
-
-  private transformData(value: any) {
-    if (Array.isArray(value)) {
-      return value.map((item) => this.transformValue(item));
-    }
-    return this.transformValue(value);
-  }
-
-  private transformValue(value: any) {
-    if (value === null || value === undefined) {
-      return value;
-    }
-
-    if (value instanceof Date) {
-      return new Timestamp(value);
-    }
-
-    if (typeof value === 'object') {
-      const transformed: any = {};
-      for (const key of Object.keys(value)) {
-        transformed[key] = this.transformValue(value[key]);
-      }
-      return transformed;
-    }
-
-    return value;
+    return next
+      .handle()
+      .pipe(map((data: any) => transformDataTogRPCData(data)));
   }
 }
