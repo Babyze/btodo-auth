@@ -1,3 +1,4 @@
+import { ServerWritableStreamImpl } from '@grpc/grpc-js/build/src/server-call';
 import {
   CallHandler,
   ExecutionContext,
@@ -16,10 +17,14 @@ export class GrpcDataTransformInterceptor implements NestInterceptor {
     context: ExecutionContext,
     next: CallHandler<any>,
   ): Observable<any> | Promise<Observable<any>> {
+    const serverWritableStreamImpl = context
+      .getArgs()
+      .find((obj) => obj instanceof ServerWritableStreamImpl);
+    const path = serverWritableStreamImpl.getPath();
+    const data = context.switchToRpc().getData();
+    const metadata = context.switchToRpc().getContext();
     this.logger.log(
-      `Data: ${JSON.stringify(
-        context.switchToRpc().getData(),
-      )} - Context: ${JSON.stringify(context.switchToRpc().getContext())}`,
+      `Path: ${path} | Data: ${JSON.stringify(data)} | Metadata: ${JSON.stringify(metadata)}`,
     );
 
     return next

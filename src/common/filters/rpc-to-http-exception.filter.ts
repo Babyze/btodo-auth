@@ -1,9 +1,13 @@
-import { Catch, ExceptionFilter, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Catch,
+  ExceptionFilter,
+  Injectable,
+} from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
-import { ValidationError } from 'class-validator';
-import { Observable, throwError } from 'rxjs';
-import { Logger } from 'nestjs-pino';
 import { InvalidAgrumentError, UnknownError } from 'btodo-utils';
+import { Logger } from 'nestjs-pino';
+import { Observable, throwError } from 'rxjs';
 
 @Catch()
 @Injectable()
@@ -15,9 +19,9 @@ export class AllExceptionFilter implements ExceptionFilter {
       return throwError(() => exception.getError());
     }
 
-    if (exception instanceof ValidationError) {
-      const errors = exception['message'] as string[];
-      const message = 'Validation failed: ' + errors.join(', ');
+    if (exception instanceof BadRequestException) {
+      const messages = (exception.getResponse() as any).message as string[];
+      const message = messages.join(', ');
       exception = new InvalidAgrumentError(message);
     } else {
       console.log(`unknow`, exception);

@@ -1,12 +1,18 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
-import { grpcCatchErrorOrDone, PasswordUtils } from 'btodo-utils';
+import {
+  grpcCatchErrorOrDone,
+  NotFoundError,
+  PasswordUtils,
+  UnauthenticatedError,
+} from 'btodo-utils';
 import { pick } from 'lodash';
 import { Jwt } from 'src/common/jwt/jwt';
 import { AuthRepository } from './auth.repository';
 import { SignUpRequestDto } from './dto/sign-up.dto';
 import { ACCOUNT_SERVICE_NAME, AccountServiceClient } from './pb/account.pb';
-import { SignUpResponse } from './pb/auth.pb';
+import { SignInResponse, SignUpResponse } from './pb/auth.pb';
+import { SignInRequestDto } from './dto/sign-in.dto';
 
 @Injectable()
 export class AuthService {
@@ -33,9 +39,27 @@ export class AuthService {
       password: PasswordUtils.encrypedPassword(payload.password),
     });
 
-    const res = this.jwt.generateJwtResponseToken(
-      pick(auth, ['authID', 'email']),
+    return this.jwt.generateJwtResponseToken(pick(auth, ['authID', 'email']));
+  }
+
+  async signIn(payload: SignInRequestDto): Promise<SignInResponse> {
+    const auth = await this.authRepository.findOne({
+      where: {
+        email: payload.email,
+      },
+    });
+    if (!auth) {
+      throw new NotFoundError(`Invalid email or password`);
+    }
+
+    const isPasswordInvalid = !PasswordUtils.isValidPassword(
+      payload.password,
+      auth.password,
     );
-    return res;
+    if (isPasswordInvalid) {
+      throw new UnauthenticatedError('Invalid email or password');
+    }
+
+    return this.jwt.generateJwtResponseToken(pick(auth, ['authID', 'email']));
   }
 }

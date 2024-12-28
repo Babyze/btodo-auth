@@ -13,12 +13,6 @@ export class AuthEntity {
   @Column({ name: 'password' })
   password: string;
 
-  @Column({ name: 'last_login' })
-  lastLogin: Date | null;
-
-  @Column({ name: 'total_tries' })
-  totalTries: number;
-
   @Column({ name: 'created_at' })
   createdAt: Date;
 
