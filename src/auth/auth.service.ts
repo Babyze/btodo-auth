@@ -13,7 +13,13 @@ import { SignInRequestDto } from './dto/sign-in.dto';
 import { SignUpRequestDto } from './dto/sign-up.dto';
 import { JwtInformation, VerifyRequestDto } from './dto/verify.dto';
 import { ACCOUNT_SERVICE_NAME, AccountServiceClient } from './pb/account.pb';
-import { SignInResponse, SignUpResponse, VerifyResponse } from './pb/auth.pb';
+import {
+  RefreshTokenResponse,
+  SignInResponse,
+  SignUpResponse,
+  VerifyResponse,
+} from './pb/auth.pb';
+import { RefreshTokenRequestDto } from './dto/refresh-token.dto';
 
 @Injectable()
 export class AuthService {
@@ -21,7 +27,7 @@ export class AuthService {
 
   constructor(
     private readonly authRepository: AuthRepository,
-    private readonly jwt: JwtService,
+    private readonly jwtService: JwtService,
     @Inject(ACCOUNT_SERVICE_NAME)
     private readonly client: ClientGrpc,
   ) {
@@ -40,7 +46,9 @@ export class AuthService {
       password: PasswordUtils.encrypedPassword(payload.password),
     });
 
-    return this.jwt.generateJwtResponseToken(pick(auth, ['authID', 'email']));
+    return this.jwtService.generateJwtResponseToken(
+      pick(auth, ['authID', 'email']),
+    );
   }
 
   async signIn(payload: SignInRequestDto): Promise<SignInResponse> {
@@ -61,11 +69,13 @@ export class AuthService {
       throw new UnauthenticatedError('Invalid email or password');
     }
 
-    return this.jwt.generateJwtResponseToken(pick(auth, ['authID', 'email']));
+    return this.jwtService.generateJwtResponseToken(
+      pick(auth, ['authID', 'email']),
+    );
   }
 
   async verifyJwt(payload: VerifyRequestDto): Promise<VerifyResponse> {
-    const jwtInfo = (await this.jwt.verifyAccessToken(
+    const jwtInfo = (await this.jwtService.verifyAccessToken(
       payload.accessToken,
     )) as JwtInformation;
 
@@ -82,5 +92,27 @@ export class AuthService {
     return {
       isValid: !!auth,
     };
+  }
+
+  async refreshToken(
+    payload: RefreshTokenRequestDto,
+  ): Promise<RefreshTokenResponse> {
+    const jwtInfo = (await this.jwtService.verifyRefreshToken(
+      payload.refreshToken,
+    )) as JwtInformation;
+
+    const auth = await this.authRepository.findOne({
+      where: {
+        authID: jwtInfo.authID,
+      },
+    });
+
+    if (!auth) {
+      throw new UnauthenticatedError('Unauthenticated');
+    }
+
+    return this.jwtService.generateJwtResponseToken(
+      pick(jwtInfo, 'authID', 'email'),
+    );
   }
 }
