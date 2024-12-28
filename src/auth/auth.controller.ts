@@ -10,6 +10,7 @@ import { AuthService } from './auth.service';
 import { SignUpRequestDto } from './dto/sign-up.dto';
 import {
   AUTH_SERVICE_NAME,
+  RefreshTokenResponse,
   SignInResponse,
   SignUpResponse,
   VerifyResponse,
@@ -19,6 +20,7 @@ import { GrpcDataTransformPipe } from '@app/common/pipes/grpc-data-transform-pip
 import { AllExceptionFilter } from '@app/common/filters/rpc-to-http-exception.filter';
 import { SignInRequestDto } from './dto/sign-in.dto';
 import { VerifyRequestDto } from './dto/verify.dto';
+import { RefreshTokenRequestDto } from './dto/refresh-token.dto';
 
 @Controller()
 @UsePipes(GrpcDataTransformPipe, ValidationPipe)
@@ -40,5 +42,10 @@ export class AuthController {
   @GrpcMethod(AUTH_SERVICE_NAME, 'Verify')
   Verify(payload: VerifyRequestDto): Promise<VerifyResponse> {
     return this.authService.verifyJwt(payload);
+  }
+
+  @GrpcMethod(AUTH_SERVICE_NAME, 'RefreshToken')
+  RefreshToken(payload: RefreshTokenRequestDto): Promise<RefreshTokenResponse> {
+    return this.authService.refreshToken(payload);
   }
 }
