@@ -1,33 +1,33 @@
 import { ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import { Jwt } from './jwt';
+import { JwtService as NestJwtService } from '@nestjs/jwt';
+import { JwtService } from './jwt-service.jwt';
 
 describe('Jwt', () => {
   let configService: ConfigService;
+  let nestJwtService: NestJwtService;
   let jwtService: JwtService;
-  let jwt: Jwt;
 
   beforeEach(() => {
     configService = new ConfigService();
-    jwtService = new JwtService({
+    nestJwtService = new NestJwtService({
       secret: configService.get('JWT_SECRET_KEY'),
     });
-    jwt = new Jwt(jwtService);
+    jwtService = new JwtService(nestJwtService, configService);
   });
 
   it('Should validate the user with valid token', async () => {
     const data = { userId: 1, name: 'Alex' };
-    jest.spyOn(jwtService, 'verify').mockReturnValue(data);
-    expect(await jwt.verify('valid-token')).toEqual(data);
+    jest.spyOn(nestJwtService, 'verify').mockReturnValue(data);
+    expect(await jwtService.verifyAccessToken('valid-token')).toEqual(data);
   });
 
-  it('should throw UnauthorizedException for invalid token', async () => {
-    jest.spyOn(jwtService, 'verify').mockImplementation(() => {
+  it('should throw ForbiddenException for invalid token', async () => {
+    jest.spyOn(nestJwtService, 'verify').mockImplementation(() => {
       throw new ForbiddenException();
     });
 
-    await expect(jwt.verify('invalid-token')).rejects.toThrow(
+    await expect(jwtService.verifyAccessToken('invalid-token')).rejects.toThrow(
       ForbiddenException,
     );
   });

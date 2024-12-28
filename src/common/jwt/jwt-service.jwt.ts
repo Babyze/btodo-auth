@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService as NestJwtService } from '@nestjs/jwt';
 
 @Injectable()
-export class Jwt {
+export class JwtService {
   constructor(
-    private readonly jwtService: JwtService,
+    private readonly jwtService: NestJwtService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -31,8 +31,17 @@ export class Jwt {
   }
 
   // Validate JWT Token, throw forbidden error if JWT Token is invalid
-  public async verify(token: string): Promise<any> {
-    return this.jwtService.verify(token);
+  public async verifyAccessToken(token: string): Promise<any> {
+    return this.jwtService.verify(token, {
+      secret: this.configService.get('JWT_ACCESS_SECRET_KEY'),
+    });
+  }
+
+  // Validate JWT Token, throw forbidden error if JWT Token is invalid
+  public async verifyRefreshToken(token: string): Promise<any> {
+    return this.jwtService.verify(token, {
+      secret: this.configService.get('JWT_REFRESH_SECRET_KEY'),
+    });
   }
 
   // Generate Jwt response token
