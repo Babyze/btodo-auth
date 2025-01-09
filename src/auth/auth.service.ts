@@ -91,6 +91,7 @@ export class AuthService {
 
     return {
       isValid: !!auth,
+      accountID: jwtInfo.authID,
     };
   }
 

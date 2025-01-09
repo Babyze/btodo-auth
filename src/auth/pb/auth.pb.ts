@@ -44,6 +44,7 @@ export interface VerifyRequest {
 
 export interface VerifyResponse {
   isValid: boolean;
+  accountID?: number | undefined;
 }
 
 export interface RefreshTokenRequest {
@@ -54,14 +55,6 @@ export interface RefreshTokenResponse {
   accessToken: string;
   refreshToken: string;
   expireDate: number;
-}
-
-export interface ChangePasswordRequest {
-  oldPassword: string;
-  newPassword: string;
-}
-
-export interface ChangePasswordResponse {
 }
 
 export const BTODO_AUTH_PACKAGE_NAME = "btodo.auth";
@@ -76,8 +69,6 @@ export interface AuthServiceClient {
   verify(request: VerifyRequest): Observable<VerifyResponse>;
 
   refreshToken(request: RefreshTokenRequest): Observable<RefreshTokenResponse>;
-
-  changePassword(request: ChangePasswordRequest): Observable<ChangePasswordResponse>;
 }
 
 export interface AuthServiceController {
@@ -92,15 +83,11 @@ export interface AuthServiceController {
   refreshToken(
     request: RefreshTokenRequest,
   ): Promise<RefreshTokenResponse> | Observable<RefreshTokenResponse> | RefreshTokenResponse;
-
-  changePassword(
-    request: ChangePasswordRequest,
-  ): Promise<ChangePasswordResponse> | Observable<ChangePasswordResponse> | ChangePasswordResponse;
 }
 
 export function AuthServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["signIn", "signUp", "signOut", "verify", "refreshToken", "changePassword"];
+    const grpcMethods: string[] = ["signIn", "signUp", "signOut", "verify", "refreshToken"];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
       GrpcMethod("AuthService", method)(constructor.prototype[method], method, descriptor);
